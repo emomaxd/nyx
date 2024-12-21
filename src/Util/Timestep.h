@@ -1,8 +1,5 @@
 #pragma once
 
-namespace QP {
-
-
 	class Timestep
 	{
 	public:
@@ -19,6 +16,3 @@ namespace QP {
 	private:
 		float m_Time;
 	};
-
-
-}

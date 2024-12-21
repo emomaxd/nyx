@@ -1,7 +1,5 @@
 #include "Vector.h"
 
-namespace QP {
-
     Vec3::Vec3(float x, float y, float z) : x(x), y(y), z(z) {}
 
     Vec3::Vec3(float xyz) : x(xyz), y(xyz), z(xyz) {}
@@ -142,6 +140,3 @@ namespace QP {
         float len = length();
         return Vec2(x / len, y / len);
     }
-
-
-} // Namespace QP
