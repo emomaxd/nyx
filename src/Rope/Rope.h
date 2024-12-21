@@ -1,64 +1,46 @@
 #pragma once
+
+#include <glm/glm.hpp>
 #include <vector>
-#include "Vector.h"
 
-namespace QP {
+const float GRAVITY = 9.81f;
+const uint32_t CONSTRAINT_ITERATIONS = 5;
 
+struct Particle 
+{
+    glm::vec3 position;
+    glm::vec3 oldPosition;
+    float mass;
+    bool isFixed;
 
-    class RopeParticle {
-    public:
-        RopeParticle(const Vec2& pos) : position(pos), prevPosition(pos), acceleration(0, 0) {}
+    Particle(glm::vec3 pos, float mass, bool isFixed = false)
+        : position(pos), oldPosition(pos), mass(mass), isFixed(isFixed) {}
+};
 
-        void applyForce(const Vec2& force);
+struct Constraint
+{
+    uint32_t p1, p2;
+    float restLength;
 
-        void update(float dt);
+    Constraint(int p1, int p2, float restLength)
+        : p1(p1), p2(p2), restLength(restLength) {}
+};
 
+class Rope
+{
+public:
+    void AddParticle(const glm::vec3& position, float mass, bool isFixed = false);
+    void AddConstraint(int p1, int p2);
+    void Update(float timestep);
 
-    public:
-        Vec2 position;
-        Vec2 prevPosition;
-        Vec2 acceleration;
-    };
+    const std::vector<Particle>& GetParticles() const;
 
+private:
+    void ApplyForces(float timestep);
+    void Integrate();
+    void SatisfyConstraints();
 
-    class RopeConstraint {
-    public:
-        RopeConstraint(RopeParticle* p1, RopeParticle* p2)
-            : p1(p1), p2(p2), restLength((p2->position - p1->position).length()) {}
-
-        void satisfy();
-
-    public:
-        RopeParticle* p1;
-        RopeParticle* p2;
-        float restLength;
-    };
-
-
-    class Rope {
-    public:
-
-        Rope(const Vec2& start, const Vec2& end, int segments) {
-            Vec2 delta = (end - start) * (1.0f / (segments - 1));
-
-            for (int i = 0; i < segments; ++i) {
-                particles.emplace_back(start + delta * i);
-            }
-
-            for (int i = 0; i < segments - 1; ++i) {
-                constraints.emplace_back(&particles[i], &particles[i + 1]);
-            }
-        }
-
-        void applyForce(const Vec2& force);
-
-        void applyMouseForce(const Vec2& mousePos);
-
-        void update(float dt);
-    
-    public:
-        std::vector<RopeParticle> particles;
-        std::vector<RopeConstraint> constraints;
-        
-    };
-}
+private:
+    std::vector<Particle> particles;
+    std::vector<Constraint> constraints;
+};

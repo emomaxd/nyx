@@ -16,8 +16,12 @@ CMakeFiles/
 CMakeCache.txt
 
 .vs/
+.vscode/
+.cache/
 
 demo.dir
 Physics.dir
 
 Debug
+
+build/

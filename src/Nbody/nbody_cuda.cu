@@ -1,153 +1,153 @@
 #include "nbody_cuda.cuh"
-#include <stdio.h>
-#include <math.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <algorithm>
+#include <iostream>
+#include <cmath>
 
-#define BOX_SIZE 100.0f  // Box dimension
-#define TIME_STEP 0.01f  // Time step for simulation
+NBodySimulation::NBodySimulation(size_t num_Particles)
+    : num_Particles(num_Particles)
+{
+    h_Positions.resize(num_Particles);
+    h_Velocities.resize(num_Particles);
+    h_Accelerations.resize(num_Particles);
+    h_Masses.resize(num_Particles);
+    h_Radii.resize(num_Particles);
+    h_Densities.resize(num_Particles);
 
-volatile sig_atomic_t stop_simulation = 0;
+    cudaMalloc(&d_Positions, num_Particles * sizeof(float3));
+    cudaMalloc(&d_Velocities, num_Particles * sizeof(float3));
+    cudaMalloc(&d_Accelerations, num_Particles * sizeof(float3));
+    cudaMalloc(&d_Masses, num_Particles * sizeof(float));
+    cudaMalloc(&d_Radii, num_Particles * sizeof(float));
+    cudaMalloc(&d_Densities, num_Particles * sizeof(float));
 
-__global__ void update_positions(Sphere *spheres, int num_spheres, float dt) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= num_spheres) return;
+    initializeParticles();
+    transferDataToDevice();
+}
 
-    Sphere &s = spheres[idx];
-    
-    // Update position based on velocity
-    s.position.x += s.velocity.x * dt;
-    s.position.y += s.velocity.y * dt;
-    s.position.z += s.velocity.z * dt;
+NBodySimulation::~NBodySimulation() {
+    cudaFree(d_Positions);
+    cudaFree(d_Velocities);
+    cudaFree(d_Accelerations);
+    cudaFree(d_Masses);
+    cudaFree(d_Radii);
+    cudaFree(d_Densities);
+}
 
-    // Handle collisions with box boundaries
-    if (s.position.x - s.radius < 0.0f || s.position.x + s.radius > BOX_SIZE) {
-        s.velocity.x *= -1.0f;
-        s.position.x = fminf(fmaxf(s.position.x, s.radius), BOX_SIZE - s.radius);
-    }
-    if (s.position.y - s.radius < 0.0f || s.position.y + s.radius > BOX_SIZE) {
-        s.velocity.y *= -1.0f;
-        s.position.y = fminf(fmaxf(s.position.y, s.radius), BOX_SIZE - s.radius);
-    }
-    if (s.position.z - s.radius < 0.0f || s.position.z + s.radius > BOX_SIZE) {
-        s.velocity.z *= -1.0f;
-        s.position.z = fminf(fmaxf(s.position.z, s.radius), BOX_SIZE - s.radius);
+void NBodySimulation::initializeParticles() {
+    std::mt19937 gen(static_cast<unsigned>(time(nullptr)));
+    std::uniform_real_distribution<float> posDistX(20.0f, 1400.0f);
+    std::uniform_real_distribution<float> posDistY(10.0f, 900.0f);
+    std::uniform_real_distribution<float> posDistZ(-10000.0f, 10000.0f);
+    std::uniform_real_distribution<float> massDist(1.0f, 1e7f);
+    std::uniform_real_distribution<float> radiusDist(0.1f, 5.0f);
+
+    for (uint32_t i = 0; i < num_Particles; ++i) {
+        h_Positions[i] = make_float3(posDistX(gen), posDistY(gen), posDistZ(gen));
+        h_Velocities[i] = make_float3(0.0f, 0.0f, 0.0f);
+        h_Accelerations[i] = make_float3(0.0f, 0.0f, 0.0f);
+        h_Masses[i] = massDist(gen);
+        h_Radii[i] = radiusDist(gen);
+        h_Densities[i] = h_Masses[i] / (4.0f / 3.0f * M_PI * std::pow(h_Radii[i], 3));
     }
 }
 
-__global__ void resolve_collisions(Sphere *spheres, int num_spheres) {
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx >= num_spheres) return;
-
-    Sphere &s1 = spheres[idx];
-
-    for (int j = idx + 1; j < num_spheres; j++) {
-        Sphere &s2 = spheres[j];
-
-        // Calculate the vector between the two spheres
-        float3 diff = make_float3(s2.position.x - s1.position.x,
-                                  s2.position.y - s1.position.y,
-                                  s2.position.z - s1.position.z);
-
-        // Distance between spheres
-        float dist2 = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
-        float min_dist = s1.radius + s2.radius;
-
-        // If they are colliding
-        if (dist2 < min_dist * min_dist) {
-            float dist = sqrtf(dist2);
-            float overlap = 0.5f * (min_dist - dist);
-
-            // Normalize the difference vector
-            diff.x /= dist;
-            diff.y /= dist;
-            diff.z /= dist;
-
-            // Move the spheres apart based on the overlap
-            s1.position.x -= overlap * diff.x;
-            s1.position.y -= overlap * diff.y;
-            s1.position.z -= overlap * diff.z;
-
-            s2.position.x += overlap * diff.x;
-            s2.position.y += overlap * diff.y;
-            s2.position.z += overlap * diff.z;
-
-            // Swap velocities in the direction of collision
-            float3 velocity_diff = make_float3(s2.velocity.x - s1.velocity.x,
-                                               s2.velocity.y - s1.velocity.y,
-                                               s2.velocity.z - s1.velocity.z);
-            float velocity_dot = velocity_diff.x * diff.x + velocity_diff.y * diff.y + velocity_diff.z * diff.z;
-
-            if (velocity_dot > 0.0f) {
-                s1.velocity.x += velocity_dot * diff.x;
-                s1.velocity.y += velocity_dot * diff.y;
-                s1.velocity.z += velocity_dot * diff.z;
-
-                s2.velocity.x -= velocity_dot * diff.x;
-                s2.velocity.y -= velocity_dot * diff.y;
-                s2.velocity.z -= velocity_dot * diff.z;
-            }
-        }
-    }
+void NBodySimulation::transferDataToDevice() {
+    cudaMemcpy(d_Positions, h_Positions.data(), num_Particles * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Velocities, h_Velocities.data(), num_Particles * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Accelerations, h_Accelerations.data(), num_Particles * sizeof(float3), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Masses, h_Masses.data(), num_Particles * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Radii, h_Radii.data(), num_Particles * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_Densities, h_Densities.data(), num_Particles * sizeof(float), cudaMemcpyHostToDevice);
 }
 
-// Utility function to check for CUDA errors
+void NBodySimulation::transferDataToHost() {
+    cudaMemcpy(h_Positions.data(), d_Positions, num_Particles * sizeof(float3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_Velocities.data(), d_Velocities, num_Particles * sizeof(float3), cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_Accelerations.data(), d_Accelerations, num_Particles * sizeof(float3), cudaMemcpyDeviceToHost);
+}
+
+void NBodySimulation::update(Timestep ts) {
+
+    int threadsPerBlock = 256;
+    int blocks = (num_Particles + threadsPerBlock - 1) / threadsPerBlock;
+
+    nBodyKernel<<<blocks, threadsPerBlock>>>(d_Positions, d_Velocities, d_Accelerations,
+                                             d_Masses, d_Radii, d_Densities,
+                                             num_Particles, ts);
+
+    cudaDeviceSynchronize();
+
+    transferDataToHost();
+}
+
 cudaError_t NBodySimulation::checkCuda(cudaError_t result) {
     if (result != cudaSuccess) {
-        fprintf(stderr, "CUDA Runtime Error: %s\n", cudaGetErrorString(result));
-        exit(-1);
+        std::cerr << "CUDA Runtime Error: " << cudaGetErrorString(result) << std::endl;
+        std::exit(EXIT_FAILURE);
     }
     return result;
 }
 
-// Constructor
-NBodySimulation::NBodySimulation(int num_spheres) : num_spheres(num_spheres) {
-    h_spheres.resize(num_spheres);
-    initializeSpheres();
+__global__ void nBodyKernel(float3* d_Positions, float3* d_Velocities, float3* d_Accelerations,
+                             float* d_Masses, float* d_Radii, float* d_Densities,
+                             uint32_t num_Particles, float dt) {
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx >= num_Particles) return;
 
-    checkCuda(cudaMalloc(&d_spheres, num_spheres * sizeof(Sphere)));
+    const float G = 6.67408f * 1e-11f;
+    const float maxSpeed = 2000.0f; // Maximum allowed speed
 
-    checkCuda(cudaMemcpy(d_spheres, h_spheres.data(), num_spheres * sizeof(Sphere), cudaMemcpyHostToDevice));
+    float3 position = d_Positions[idx];
+    float3 velocity = d_Velocities[idx];
+    float3 acceleration = make_float3(0.0f, 0.0f, 0.0f);
+
+    // Compute gravitational forces
+    for (uint32_t i = 0; i < num_Particles; ++i) {
+        if (i == idx) continue;
+
+        float3 otherPosition = d_Positions[i];
+        float3 direction = make_float3(otherPosition.x - position.x,
+                                       otherPosition.y - position.y,
+                                       otherPosition.z - position.z);
+
+        float distSq = direction.x * direction.x + direction.y * direction.y + direction.z * direction.z;
+        float dist = sqrtf(distSq + 1e-7f); // Avoid division by zero
+        float force = G * (d_Masses[i] * d_Masses[idx]) / (distSq + 1e-7f);
+
+        direction.x /= dist;
+        direction.y /= dist;
+        direction.z /= dist;
+
+        acceleration.x += force * direction.x;
+        acceleration.y += force * direction.y;
+        acceleration.z += force * direction.z;
+    }
+
+    // Update velocities and positions
+    velocity.x += acceleration.x * dt;
+    velocity.y += acceleration.y * dt;
+    velocity.z += acceleration.z * dt;
+
+    position.x += velocity.x * dt;
+    position.y += velocity.y * dt;
+    position.z += velocity.z * dt;
+
+    // Clamp positions to bounds
+    position.x = fminf(fmaxf(position.x, 0.0f), 1600.0f);
+    position.y = fminf(fmaxf(position.y, 0.0f), 900.0f);
+    position.z = fminf(fmaxf(position.z, -10000.0f), 10000.0f);
+
+    // Limit speed to maxSpeed
+    float speedSq = velocity.x * velocity.x + velocity.y * velocity.y + velocity.z * velocity.z;
+    if (speedSq > maxSpeed * maxSpeed) {
+        float scale = maxSpeed / sqrtf(speedSq);
+        velocity.x *= scale;
+        velocity.y *= scale;
+        velocity.z *= scale;
+    }
+
+    // Write back updated values
+    d_Positions[idx] = position;
+    d_Velocities[idx] = velocity;
+    d_Accelerations[idx] = acceleration; // Update acceleration for the next step
 }
 
-// Destructor
-NBodySimulation::~NBodySimulation() {
-    checkCuda(cudaFree(d_spheres));
-}
-
-void NBodySimulation::initializeSpheres() {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> pos_dist(0.0f, BOX_SIZE);
-    std::uniform_real_distribution<float> vel_dist(-5.0f, 5.0f);
-
-    auto generate_sphere = [&]() {
-        return Sphere{
-            make_float3(pos_dist(gen), pos_dist(gen), pos_dist(gen)),
-            make_float3(vel_dist(gen), vel_dist(gen), vel_dist(gen)),
-            1.0f
-        };
-    };
-
-    std::generate(h_spheres.begin(), h_spheres.end(), generate_sphere);
-}
-
-void NBodySimulation::update() {
-    // Define the number of threads and blocks
-    int threadsPerBlock = 256;
-    int blocksPerGrid = (num_spheres + threadsPerBlock - 1) / threadsPerBlock;
-
-    update_positions<<<blocksPerGrid, threadsPerBlock>>>(d_spheres, num_spheres, TIME_STEP);
-    checkCuda(cudaDeviceSynchronize());
-
-    resolve_collisions<<<blocksPerGrid, threadsPerBlock>>>(d_spheres, num_spheres);
-    checkCuda(cudaDeviceSynchronize());
-
-    checkCuda(cudaMemcpy(h_spheres.data(), d_spheres, num_spheres * sizeof(Sphere), cudaMemcpyDeviceToHost));
-}
-
-// Accessor for spheres
-const std::vector<Sphere>& NBodySimulation::getSpheres() const {
-    return h_spheres;
-}

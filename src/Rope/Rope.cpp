@@ -1,65 +1,69 @@
 #include "Rope.h"
 
-namespace QP {
+void Rope::AddParticle(const glm::vec3& position, float mass, bool isFixed)
+{
+    particles.emplace_back(position, mass, isFixed);
+}
 
-    void RopeParticle::applyForce(const Vec2& force) {
-        acceleration += force;
+void Rope::AddConstraint(int p1, int p2)
+{
+    float restLength = glm::length(particles[p2].position - particles[p1].position);
+    constraints.emplace_back(p1, p2, restLength);
+}
+
+void Rope::ApplyForces(float timestep)
+{
+    for (auto& particle : particles) {
+        if (particle.isFixed) continue;
+
+        glm::vec3 acceleration(0.0f, -GRAVITY, 0.0f);
+        particle.position += acceleration * timestep * timestep;
     }
+}
 
-    void RopeParticle::update(float dt) {
-        Vec2 velocity = position - prevPosition;
-        prevPosition = position;
-        position += velocity + acceleration * dt * dt;
-        acceleration = Vec2(0, 0);
+void Rope::Integrate()
+{
+    for (auto& particle : particles)
+    {
+        if (particle.isFixed) continue;
+
+        glm::vec3 tempPosition = particle.position;
+
+        particle.position += (particle.position - particle.oldPosition);
+
+        particle.oldPosition = tempPosition;
     }
+}
 
-    void RopeConstraint::satisfy() {
-        for (int i = 0; i < 2500; ++i) {
+void Rope::SatisfyConstraints()
+{
+    for (int i = 0; i < CONSTRAINT_ITERATIONS; ++i) {
+        for (const auto& constraint : constraints) {
+            Particle& p1 = particles[constraint.p1];
+            Particle& p2 = particles[constraint.p2];
 
-        
-            Vec2 delta = p2->position - p1->position;
-            float deltaLength = delta.length();
-            float diff = (deltaLength - restLength) / deltaLength;
+            glm::vec3 delta = p2.position - p1.position;
+            float current_length = glm::length(delta);
+            float correction = (current_length - constraint.restLength) / current_length;
 
-            Vec2 correction = delta * 0.5f * diff;
-            p1->position += correction;
-            p2->position = p2->position - correction;
-        }
-    }
-
-
-    void Rope::applyForce(const Vec2& force) {
-        // Start from the second particle to apply force
-        for (size_t i = 1; i < particles.size(); ++i) {
-            particles[i].applyForce(force);
-        }
-    }
-
-    void Rope::applyMouseForce(const Vec2& mousePos) {
-        for (auto& particle : particles) {
-            Vec2 force = mousePos - particle.position;
-            particle.applyForce(force);
-        }
-    }
-
-    void Rope::update(float dt) {
-
-        Vec2 gravity(0, -9.81f);
-
-        applyForce(gravity);
-
-        for (auto& particle : particles) {
-            particle.update(dt);
-        }
-
-        for (int i = 0; i < 5; ++i) {
-            for (auto& constraint : constraints) {
-                constraint.satisfy();
+            if (!p1.isFixed) {
+                p1.position += delta * correction * 0.5f;
+            }
+            if (!p2.isFixed) {
+                p2.position -= delta * correction * 0.5f;
             }
         }
-        // Ensure the first particle remains static
-        if (!particles.empty()) {
-            particles[0].position = particles[0].prevPosition;
-        }
     }
+}
+
+void Rope::Update(float timestep)
+{
+    ApplyForces(timestep);
+    Integrate();
+    SatisfyConstraints();
+}
+
+const std::vector<Particle>& Rope::GetParticles() const
+{
+    return particles;
 }

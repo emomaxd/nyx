@@ -3,8 +3,6 @@
 #include <iostream>
 #include <cmath>
 
-namespace QP {
-
     class Vec3 {
     public:
         float x, y, z;
@@ -57,5 +55,3 @@ namespace QP {
     void normalize(Vec2& vec);
     float dot(const Vec2& a, const Vec2& b);
     Vec2 cross(const Vec2& a, const Vec2& b);
-
-} // Namespace QP

@@ -14,9 +14,10 @@ file(GLOB_RECURSE SRC
 
 add_library(Physics ${SRC})
 
-target_include_directories(Physics PRIVATE 
+target_include_directories(Physics PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/Util
     ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/vendor/glm
 )
 
 set_target_properties(Physics PROPERTIES
@@ -24,4 +25,4 @@ set_target_properties(Physics PROPERTIES
 )
 
 # Link any required CUDA libraries (if needed)
-# target_link_libraries(Physics PRIVATE cublas cudart rt pthread dl)
+# target_link_libraries(Physics PRIVATE cublas cudart rt pthread dl sfml-graphics sfml-window sfml-system)
