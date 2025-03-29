@@ -1,13 +1,11 @@
-#include "rigidbody/rigidbody.h"
+#include "rigidbody/rigidbody_system.h"
 
+int main() {
+  constexpr float timestep = 1 / 60.0f;
 
-int main()
-{
-  constexpr float TIMESTEP = 1 / 60.0f;
+  nyx::RigidbodySystem rb;
 
-  nyx::Rigidbody rb;
-  
-  rb.update(TIMESTEP);
+  rb.update(timestep);
 
   return 0;
 }

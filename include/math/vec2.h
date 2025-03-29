@@ -4,44 +4,37 @@
 
 #include "math/base.h"
 
-constexpr size_t element_count = 2;
-constexpr size_t alignment = element_count * alignment_multiplier;
 
-namespace nyx::math
-{
+namespace nyx::math {
 
-    class alignas(alignment) vec2
-    {
-      public:
-        real_t x, y;
+constexpr size_t elementCount = 2;
+constexpr size_t alignment = elementCount * alignmentMultiplier;
 
-        vec2(real_t x = 0, real_t y = 0) : x(x), y(y) {}
 
-        inline vec2 operator+(const vec2& other) const
-        {
-            return vec2{x + other.x, y + other.y};
-        }
+class alignas(alignment) Vec2 {
+public:
+  real_t X, Y;
 
-        inline real_t length() const
-        {
-            return std::sqrt(x * x + y * y);
-        }
+  Vec2(real_t X = 0, real_t Y = 0) : X(X), Y(Y) {}
 
-        inline vec2 normalized() const
-        {
-            real_t len = length();
-            return vec2(x / len, y / len);
-        }
-    };
+  inline Vec2 operator+(const Vec2 &other) const {
+    return Vec2{X + other.X, Y + other.Y};
+  }
 
-    inline auto operator*(const vec2& v, real_t scalar) -> vec2
-    {
-        return vec2{v.x * scalar, v.y * scalar};
-    }
+  inline real_t length() const { return std::sqrt(X * X + Y * Y); }
 
-    inline auto dot(const vec2& a, const vec2& b) -> vec2
-    {
-        return a.x * b.x + a.y * b.y;
-    }
+  inline Vec2 normalized() const {
+    real_t len = length();
+    return Vec2(X / len, Y / len);
+  }
+};
 
-} // namespace math
+inline auto operator*(const Vec2 &v, real_t scalar) -> Vec2 {
+  return Vec2{v.X * scalar, v.Y * scalar};
+}
+
+inline auto dot(const Vec2 &a, const Vec2 &b) -> Vec2 {
+  return a.X * b.X + a.Y * b.Y;
+}
+
+} // namespace nyx::math

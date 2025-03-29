@@ -8,7 +8,7 @@ set(LIB
 )
 
 set(SRC
-  rigidbody.cpp
+  rigidbody_system.cpp
 )
 
 add_library(rigidbody ${SRC})

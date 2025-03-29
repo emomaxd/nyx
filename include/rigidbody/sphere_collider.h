@@ -2,9 +2,8 @@
 
 #include "math/base.h"
 
-struct SphereCollider
-{
-  real_t x, y;
-  
+struct SphereCollider {
+  real_t X, Y;
+
   SphereCollider() = default;
 };

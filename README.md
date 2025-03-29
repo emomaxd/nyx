@@ -7,7 +7,7 @@
 Nyx is a **cross-platform**, **open-source** physics library designed to create high performance 2D and 3D physics simulations in real-time.
 
 ## Documentation
-- [About](docs/manual/about.md)
+- [About](doc/manual/ABOUT.md)
 
 ## Development
 - [Build Instructions](BUILDING.md)

@@ -6,87 +6,150 @@
 namespace nyx::math {
 
 #if !defined(__forceinline)
-#define __forceinline          inline __attribute__((always_inline))
+#define __forceinline inline __attribute__((always_inline))
 #endif
 
 #ifdef __GNUC__
-class __attribute__((aligned (16))) vec3
+class __attribute__((aligned(16))) Vec3
 #else
-_MM_ALIGN16 class vec3
+_MM_ALIGN16 class Vec3
 #endif
 {
- public:
-
-  __forceinline vec3() : m_value(_mm_setzero_ps()) {}
-  __forceinline vec3(float x, float y, float z) : m_value(_mm_set_ps(0, z, y, x)) {}
-  __forceinline vec3(__m128 m) : m_value(m) {}
+public:
+  __forceinline Vec3() : Value(_mm_setzero_ps()) {}
+  __forceinline Vec3(float X, float Y, float Z)
+      : Value(_mm_set_ps(0, Z, Y, X)) {}
+  __forceinline Vec3(__m128 m) : Value(m) {}
 
   // arithmetic operators with vector3
-  __forceinline vec3 operator+(const vec3& b) const { return _mm_add_ps(m_value, b.m_value); }
-  __forceinline vec3 operator-(const vec3& b) const { return _mm_sub_ps(m_value, b.m_value); }
-  __forceinline vec3 operator*(const vec3& b) const { return _mm_mul_ps(m_value, b.m_value); }
-  __forceinline vec3 operator/(const vec3& b) const { return _mm_div_ps(m_value, b.m_value); }
+  __forceinline Vec3 operator+(const Vec3 &b) const {
+    return _mm_add_ps(Value, b.Value);
+  }
+  __forceinline Vec3 operator-(const Vec3 &b) const {
+    return _mm_sub_ps(Value, b.Value);
+  }
+  __forceinline Vec3 operator*(const Vec3 &b) const {
+    return _mm_mul_ps(Value, b.Value);
+  }
+  __forceinline Vec3 operator/(const Vec3 &b) const {
+    return _mm_div_ps(Value, b.Value);
+  }
 
   // op= operators
-  __forceinline vec3& operator+=(const vec3& b) { m_value = _mm_add_ps(m_value, b.m_value); return *this; }
-  __forceinline vec3& operator-=(const vec3& b) { m_value = _mm_sub_ps(m_value, b.m_value); return *this; }
-  __forceinline vec3& operator*=(const vec3& b) { m_value = _mm_mul_ps(m_value, b.m_value); return *this; }
-  __forceinline vec3& operator/=(const vec3& b) { m_value = _mm_div_ps(m_value, b.m_value); return *this; }
+  __forceinline Vec3 &operator+=(const Vec3 &b) {
+    Value = _mm_add_ps(Value, b.Value);
+    return *this;
+  }
+  __forceinline Vec3 &operator-=(const Vec3 &b) {
+    Value = _mm_sub_ps(Value, b.Value);
+    return *this;
+  }
+  __forceinline Vec3 &operator*=(const Vec3 &b) {
+    Value = _mm_mul_ps(Value, b.Value);
+    return *this;
+  }
+  __forceinline Vec3 &operator/=(const Vec3 &b) {
+    Value = _mm_div_ps(Value, b.Value);
+    return *this;
+  }
 
   // arithmetic operators with float
-  __forceinline vec3 operator+(float b) const { return _mm_add_ps(m_value, _mm_set1_ps(b)); }
-  __forceinline vec3 operator-(float b) const { return _mm_sub_ps(m_value, _mm_set1_ps(b)); }
-  __forceinline vec3 operator*(float b) const { return _mm_mul_ps(m_value, _mm_set1_ps(b)); }
-  __forceinline vec3 operator/(float b) const { return _mm_div_ps(m_value, _mm_set1_ps(b)); }
+  __forceinline Vec3 operator+(float b) const {
+    return _mm_add_ps(Value, _mm_set1_ps(b));
+  }
+  __forceinline Vec3 operator-(float b) const {
+    return _mm_sub_ps(Value, _mm_set1_ps(b));
+  }
+  __forceinline Vec3 operator*(float b) const {
+    return _mm_mul_ps(Value, _mm_set1_ps(b));
+  }
+  __forceinline Vec3 operator/(float b) const {
+    return _mm_div_ps(Value, _mm_set1_ps(b));
+  }
 
   // op= operators with float
-  __forceinline vec3& operator+=(float b) { m_value = _mm_add_ps(m_value, _mm_set1_ps(b)); return *this; }
-  __forceinline vec3& operator-=(float b) { m_value = _mm_sub_ps(m_value, _mm_set1_ps(b)); return *this; }
-  __forceinline vec3& operator*=(float b) { m_value = _mm_mul_ps(m_value, _mm_set1_ps(b)); return *this; }
-  __forceinline vec3& operator/=(float b) { m_value = _mm_div_ps(m_value, _mm_set1_ps(b)); return *this; }
+  __forceinline Vec3 &operator+=(float b) {
+    Value = _mm_add_ps(Value, _mm_set1_ps(b));
+    return *this;
+  }
+  __forceinline Vec3 &operator-=(float b) {
+    Value = _mm_sub_ps(Value, _mm_set1_ps(b));
+    return *this;
+  }
+  __forceinline Vec3 &operator*=(float b) {
+    Value = _mm_mul_ps(Value, _mm_set1_ps(b));
+    return *this;
+  }
+  __forceinline Vec3 &operator/=(float b) {
+    Value = _mm_div_ps(Value, _mm_set1_ps(b));
+    return *this;
+  }
 
   // cross product
-  __forceinline vec3 cross(const vec3& b) const
-  {
-   return _mm_sub_ps(_mm_mul_ps(_mm_shuffle_ps(m_value, m_value, _MM_SHUFFLE(3, 0, 2, 1)),
-                                _mm_shuffle_ps(b.m_value, b.m_value, _MM_SHUFFLE(3, 1, 0, 2))),
-                     _mm_mul_ps(_mm_shuffle_ps(m_value, m_value, _MM_SHUFFLE(3, 1, 0, 2)),
-                                _mm_shuffle_ps(b.m_value, b.m_value, _MM_SHUFFLE(3, 0, 2, 1))));
+  __forceinline Vec3 cross(const Vec3 &b) const {
+    return _mm_sub_ps(
+        _mm_mul_ps(
+            _mm_shuffle_ps(Value, Value, _MM_SHUFFLE(3, 0, 2, 1)),
+            _mm_shuffle_ps(b.Value, b.Value, _MM_SHUFFLE(3, 1, 0, 2))),
+        _mm_mul_ps(
+            _mm_shuffle_ps(Value, Value, _MM_SHUFFLE(3, 1, 0, 2)),
+            _mm_shuffle_ps(b.Value, b.Value, _MM_SHUFFLE(3, 0, 2, 1))));
   }
 
   // dot product with another vector
-  __forceinline float dot(const vec3& b) const { return _mm_cvtss_f32(_mm_dp_ps(m_value, b.m_value, 0x71)); }
+  __forceinline float dot(const Vec3 &b) const {
+    return _mm_cvtss_f32(_mm_dp_ps(Value, b.Value, 0x71));
+  }
   // length of the vector
-  __forceinline float length() const { return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(m_value, m_value, 0x71))); }
+  __forceinline float length() const {
+    return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(Value, Value, 0x71)));
+  }
   // 1/length() of the vector
-  __forceinline float rlength() const { return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(m_value, m_value, 0x71))); }
+  __forceinline float rlength() const {
+    return _mm_cvtss_f32(_mm_rsqrt_ss(_mm_dp_ps(Value, Value, 0x71)));
+  }
   // returns the vector scaled to unit length
-  __forceinline vec3 normalize() const { return _mm_mul_ps(m_value, _mm_rsqrt_ps(_mm_dp_ps(m_value, m_value, 0x7F))); }
+  __forceinline Vec3 normalize() const {
+    return _mm_mul_ps(Value, _mm_rsqrt_ps(_mm_dp_ps(Value, Value, 0x7F)));
+  }
 
   // overloaded operators that ensure alignment
 #ifdef WIN32
-  __forceinline void* operator new[](size_t x) { return _aligned_malloc(x, 16); }
-  __forceinline void operator delete[](void* x) { if (x) _aligned_free(x); }
+  __forceinline void *operator new[](size_t X) {
+    return _aligned_malloc(X, 16);
+  }
+  __forceinline void operator delete[](void *X) {
+    if (X)
+      _aligned_free(X);
+  }
 #endif
 
 #ifdef __APPLE__
-  __forceinline void* operator new[](size_t x) { return _mm_malloc(x, 16); }
-  __forceinline void operator delete[](void* x) { if (x) _mm_free(x); }
+  __forceinline void *operator new[](size_t X) { return _mm_malloc(X, 16); }
+  __forceinline void operator delete[](void *X) {
+    if (X)
+      _mm_free(X);
+  }
 #endif
 
   // Member variables
-  union
-  {
-   struct { float x, y, z; };
-   __m128 m_value;
+  union {
+    struct {
+      float X, Y, Z;
+    };
+    __m128 Value;
   };
 };
 
-__forceinline vec3 operator+(float a, const vec3& b) { return b + a; }
-__forceinline vec3 operator-(float a, const vec3& b) { return vec3(_mm_set1_ps(a)) - b; }
-__forceinline vec3 operator*(float a, const vec3& b) { return b * a; }
-__forceinline vec3 operator/(float a, const vec3& b) { return vec3(_mm_set1_ps(a)) / b; }
-
+__forceinline Vec3 operator+(float a, const Vec3 &b) { return b + a; }
+__forceinline Vec3 operator-(float a, const Vec3 &b) {
+  return Vec3(_mm_set1_ps(a)) - b;
 }
+__forceinline Vec3 operator*(float a, const Vec3 &b) { return b * a; }
+__forceinline Vec3 operator/(float a, const Vec3 &b) {
+  return Vec3(_mm_set1_ps(a)) / b;
+}
+
+} // namespace nyx::math
 
 #endif // VECTOR3_H

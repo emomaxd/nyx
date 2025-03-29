@@ -3,57 +3,58 @@
 
 #include "math/vec3.h"
 
-constexpr size_t element_count = 4;
-constexpr size_t alignment = element_count * alignment_multiplier;
 
-struct alignas(alignment) Quaternion {
-    real_t x, y, z, w;
 
-    Quaternion() : x(0.0f), y(0.0f), z(0.0f), w(1.0f) {}
+namespace nyx::math {
 
-    Quaternion(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+constexpr size_t quaternionElementCount = 4;
+constexpr size_t quaternionAlignment = quaternionElementCount * alignmentMultiplier;
 
-    // Normalize the quaternion
-    void normalize() {
-        float len = x * x + y * y + z * z + w * w;
-        if (len > 0.0f) {
-            float invLen = 1.0f / sqrt(len);
-            x *= invLen;
-            y *= invLen;
-            z *= invLen;
-            w *= invLen;
-        }
+struct alignas(quaternionAlignment) Quaternion {
+  real_t X, Y, Z, W;
+
+  Quaternion() : X(0.0f), Y(0.0f), Z(0.0f), W(1.0f) {}
+
+  Quaternion(float X, float Y, float Z, float W) : X(X), Y(Y), Z(Z), W(W) {}
+
+  // Normalize the quaternion
+  void normalize() {
+    float len = X * X + Y * Y + Z * Z + W * W;
+    if (len > 0.0f) {
+      float invLen = 1.0f / sqrt(len);
+      X *= invLen;
+      Y *= invLen;
+      Z *= invLen;
+      W *= invLen;
     }
+  }
 
-    // Multiply two quaternions
-    Quaternion operator*(const Quaternion& q) const {
-        return Quaternion(
-            w * q.x + x * q.w + y * q.z - z * q.y,
-            w * q.y - x * q.z + y * q.w + z * q.x,
-            w * q.z + x * q.y - y * q.x + z * q.w,
-            w * q.w - x * q.x - y * q.y - z * q.z
-        );
-    }
+  // Multiply two quaternions
+  Quaternion operator*(const Quaternion &q) const {
+    return Quaternion(W * q.X + X * q.W + Y * q.Z - Z * q.Y,
+                      W * q.Y - X * q.Z + Y * q.W + Z * q.X,
+                      W * q.Z + X * q.Y - Y * q.X + Z * q.W,
+                      W * q.W - X * q.X - Y * q.Y - Z * q.Z);
+  }
 
-    // Quaternion-vector multiplication for rotating a vector
-    Vec3 rotate(const Vec3& v) const {
-        Quaternion qv(0.0f, v.x, v.y, v.z);
-        Quaternion qConjugate = conjugate();
-        Quaternion qResult = *this * qv * qConjugate;
-        return Vec3(qResult.x, qResult.y, qResult.z);
-    }
+  // Quaternion-vector multiplication for rotating a vector
+  Vec3 rotate(const Vec3 &v) const {
+    Quaternion qv(0.0f, v.X, v.Y, v.Z);
+    Quaternion qConjugate = conjugate();
+    Quaternion qResult = *this * qv * qConjugate;
+    return Vec3(qResult.X, qResult.Y, qResult.Z);
+  }
 
-    // Conjugate of a quaternion (for rotation inverse)
-    Quaternion conjugate() const {
-        return Quaternion(-x, -y, -z, w);
-    }
+  // Conjugate of a quaternion (for rotation inverse)
+  Quaternion conjugate() const { return Quaternion(-X, -Y, -Z, W); }
 
-    // Static function for creating a quaternion from axis and angle
-    static Quaternion fromAxisAngle(const Vec3& axis, float angle) {
-        float halfAngle = angle * 0.5f;
-        float s = sin(halfAngle);
-        return Quaternion(axis.x * s, axis.y * s, axis.z * s, cos(halfAngle));
-    }
+  // Static function for creating a quaternion from axis and angle
+  static Quaternion fromAxisAngle(const Vec3 &axis, float angle) {
+    float halfAngle = angle * 0.5f;
+    float s = sin(halfAngle);
+    return Quaternion(axis.X * s, axis.Y * s, axis.Z * s, cos(halfAngle));
+  }
 };
 
+}
 #endif

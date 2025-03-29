@@ -5,50 +5,45 @@
 
 #include "math/base.h"
 
-constexpr size_t element_count = 3;
-constexpr size_t alignment = element_count * alignment_multiplier;
-constexpr size_t next_power_of_two = std::bit_ceil(alignment);
 
-namespace nyx::math
-{
 
-    class alignas(next_power_of_two) vec3
-    {
-      public:
-        real_t x, y, z;
+namespace nyx::math {
 
-        vec3(real_t x = 0, real_t y = 0, real_t z = 0) : x(x), y(y), z(z) {}
+constexpr size_t vec3ElementCount = 3;
+constexpr size_t vec3Alignment = vec3ElementCount * alignmentMultiplier;
 
-        inline vec3 operator+(const vec3& other) const
-        {
-            return vec3{x + other.x, y + other.y, z + other.z};
-        }
+/* (C++20) std::bit_ceil() -> The smallest integral power of two that is not smaller than x. */
+constexpr size_t nextPowerOfTwo = std::bit_ceil(vec3Alignment);
 
-        inline real_t length() const
-        {
-            return std::sqrt(x * x + y * y + z * z);
-        }
+class alignas(nextPowerOfTwo) Vec3 {
+public:
+  real_t X, Y, Z;
 
-        inline vec3 normalized() const
-        {
-            real_t len = length();
-            return vec3(x / len, y / len, z / len);
-        }
-    };
+  Vec3(real_t x = 0, real_t y = 0, real_t z = 0) : X(x), Y(y), Z(z) {}
 
-    inline auto operator*(const vec3& v, real_t scalar) -> vec3
-    {
-        return vec3(v.x * scalar, v.y * scalar, v.z * scalar);
-    }
+  inline Vec3 operator+(const Vec3 &other) const {
+    return Vec3{X + other.X, Y + other.Y, Z + other.Z};
+  }
 
-    inline auto dot(const vec3& a, const vec3& b) -> real_t {
-        return a.x * b.x + a.y * b.y + a.z * b.z;
-    }
+  inline real_t length() const { return std::sqrt(X * X + Y * Y + Z * Z); }
 
-    inline auto cross(const vec3& a, const vec3& b) -> vec3 {
-        return vec3{a.y * b.z - a.z * b.y,
-                a.z * b.x - a.x * b.z,
-                a.x * b.y - a.y * b.x};
-    }
+  inline Vec3 normalized() const {
+    real_t len = length();
+    return Vec3(X / len, Y / len, Z / len);
+  }
+};
 
-} // namespace math
+inline auto operator*(const Vec3 &v, real_t scalar) -> Vec3 {
+  return Vec3(v.X * scalar, v.Y * scalar, v.Z * scalar);
+}
+
+inline auto dot(const Vec3 &a, const Vec3 &b) -> real_t {
+  return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+}
+
+inline auto cross(const Vec3 &a, const Vec3 &b) -> Vec3 {
+  return Vec3{a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z,
+              a.X * b.Y - a.Y * b.X};
+}
+
+} // namespace nyx::math
