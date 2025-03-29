@@ -2,8 +2,11 @@
 
 #include "math/base.h"
 
-struct SphereCollider {
-  real_t X, Y;
+namespace nyx {
 
-  SphereCollider() = default;
+struct SphereCollider
+{
+  real_t X, Y;
 };
+
+} /* namespace nyx */

@@ -5,7 +5,7 @@
 #include "math/base.h"
 
 
-namespace nyx::math {
+namespace nyx {
 
 constexpr size_t elementCount = 2;
 constexpr size_t alignment = elementCount * alignmentMultiplier;
@@ -15,7 +15,7 @@ class alignas(alignment) Vec2 {
 public:
   real_t X, Y;
 
-  Vec2(real_t X = 0, real_t Y = 0) : X(X), Y(Y) {}
+  Vec2(real_t x = 0, real_t y = 0) : X(x), Y(y) {}
 
   inline Vec2 operator+(const Vec2 &other) const {
     return Vec2{X + other.X, Y + other.Y};
@@ -37,4 +37,4 @@ inline auto dot(const Vec2 &a, const Vec2 &b) -> Vec2 {
   return a.X * b.X + a.Y * b.Y;
 }
 
-} // namespace nyx::math
+} /* namespace nyx */

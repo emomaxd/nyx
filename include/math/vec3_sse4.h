@@ -3,7 +3,7 @@
 
 #include <smmintrin.h>
 
-namespace nyx::math {
+namespace nyx {
 
 #if !defined(__forceinline)
 #define __forceinline inline __attribute__((always_inline))
@@ -17,8 +17,8 @@ _MM_ALIGN16 class Vec3
 {
 public:
   __forceinline Vec3() : Value(_mm_setzero_ps()) {}
-  __forceinline Vec3(float X, float Y, float Z)
-      : Value(_mm_set_ps(0, Z, Y, X)) {}
+  __forceinline Vec3(float x, float y, float z)
+      : Value(_mm_set_ps(0, z, y, x)) {}
   __forceinline Vec3(__m128 m) : Value(m) {}
 
   // arithmetic operators with vector3
@@ -150,6 +150,6 @@ __forceinline Vec3 operator/(float a, const Vec3 &b) {
   return Vec3(_mm_set1_ps(a)) / b;
 }
 
-} // namespace nyx::math
+} /* namespace nyx */
 
 #endif // VECTOR3_H

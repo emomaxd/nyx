@@ -5,7 +5,7 @@
 
 
 
-namespace nyx::math {
+namespace nyx {
 
 constexpr size_t quaternionElementCount = 4;
 constexpr size_t quaternionAlignment = quaternionElementCount * alignmentMultiplier;
@@ -15,7 +15,7 @@ struct alignas(quaternionAlignment) Quaternion {
 
   Quaternion() : X(0.0f), Y(0.0f), Z(0.0f), W(1.0f) {}
 
-  Quaternion(float X, float Y, float Z, float W) : X(X), Y(Y), Z(Z), W(W) {}
+  Quaternion(float x, float y, float z, float w) : X(x), Y(y), Z(z), W(w) {}
 
   // Normalize the quaternion
   void normalize() {
@@ -56,5 +56,5 @@ struct alignas(quaternionAlignment) Quaternion {
   }
 };
 
-}
+} /* namespace nyx */
 #endif

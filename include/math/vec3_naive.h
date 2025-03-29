@@ -7,7 +7,7 @@
 
 
 
-namespace nyx::math {
+namespace nyx {
 
 constexpr size_t vec3ElementCount = 3;
 constexpr size_t vec3Alignment = vec3ElementCount * alignmentMultiplier;
@@ -46,4 +46,4 @@ inline auto cross(const Vec3 &a, const Vec3 &b) -> Vec3 {
               a.X * b.Y - a.Y * b.X};
 }
 
-} // namespace nyx::math
+} /* namespace nyx */

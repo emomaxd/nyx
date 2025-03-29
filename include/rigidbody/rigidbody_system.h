@@ -6,8 +6,6 @@
 
 namespace nyx {
 
-using namespace math;
-
 constexpr size_t initialRbCount = 10'000;
 
 struct RigidbodyData {
