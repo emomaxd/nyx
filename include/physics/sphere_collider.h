@@ -1,6 +1,6 @@
 #pragma once
 
-#include "math/base.h"
+#include "core/base.h"
 
 namespace nyx {
 

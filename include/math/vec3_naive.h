@@ -1,49 +1,123 @@
 #pragma once
 
-#include <bit>
+#include <bit> // std::bit_ceil
 #include <cmath>
+#include <cstddef> // size_t
 
-#include "math/base.h"
-
-
+#include "core/base.h" // NYX_ALIGNAS_CACHE, NYX_FORCEINLINE, real_t
 
 namespace nyx {
 
-constexpr size_t vec3ElementCount = 3;
-constexpr size_t vec3Alignment = vec3ElementCount * alignmentMultiplier;
+constexpr size_t kVec3ElementCount = 3;
+constexpr size_t kVec3BaseSize = kVec3ElementCount * sizeof(real_t);
+constexpr size_t kVec3Alignment = std::bit_ceil(kVec3BaseSize);
 
-/* (C++20) std::bit_ceil() -> The smallest integral power of two that is not smaller than x. */
-constexpr size_t nextPowerOfTwo = std::bit_ceil(vec3Alignment);
-
-class alignas(nextPowerOfTwo) Vec3 {
+class alignas(kVec3Alignment) Vec3 {
 public:
-  real_t X, Y, Z;
+    real_t X, Y, Z;
 
-  Vec3(real_t x = 0, real_t y = 0, real_t z = 0) : X(x), Y(y), Z(z) {}
+    NYX_FORCEINLINE Vec3(real_t x = 0, real_t y = 0, real_t z = 0) : X(x), Y(y), Z(z) {}
+    NYX_FORCEINLINE Vec3(const Vec3& other) : X(other.X), Y(other.Y), Z(other.Z) {}
 
-  inline Vec3 operator+(const Vec3 &other) const {
-    return Vec3{X + other.X, Y + other.Y, Z + other.Z};
-  }
+    NYX_FORCEINLINE Vec3& operator=(const Vec3& other) {
+        X = other.X; Y = other.Y; Z = other.Z;
+        return *this;
+    }
 
-  inline real_t length() const { return std::sqrt(X * X + Y * Y + Z * Z); }
+    NYX_FORCEINLINE Vec3 operator+(const Vec3& other) const {
+        return Vec3{X + other.X, Y + other.Y, Z + other.Z};
+    }
 
-  inline Vec3 normalized() const {
-    real_t len = length();
-    return Vec3(X / len, Y / len, Z / len);
-  }
+    NYX_FORCEINLINE Vec3 operator-(const Vec3& other) const {
+        return Vec3{X - other.X, Y - other.Y, Z - other.Z};
+    }
+
+    NYX_FORCEINLINE Vec3 operator*(real_t scalar) const {
+        return Vec3{X * scalar, Y * scalar, Z * scalar};
+    }
+
+    NYX_FORCEINLINE Vec3 operator/(real_t scalar) const {
+        real_t inv = 1.0f / scalar;
+        return Vec3{X * inv, Y * inv, Z * inv};
+    }
+
+    NYX_FORCEINLINE Vec3& operator+=(const Vec3& other) {
+        X += other.X; Y += other.Y; Z += other.Z;
+        return *this;
+    }
+
+    NYX_FORCEINLINE Vec3& operator-=(const Vec3& other) {
+        X -= other.X; Y -= other.Y; Z -= other.Z;
+        return *this;
+    }
+
+    NYX_FORCEINLINE Vec3& operator*=(real_t scalar) {
+        X *= scalar; Y *= scalar; Z *= scalar;
+        return *this;
+    }
+
+    NYX_FORCEINLINE Vec3& operator/=(real_t scalar) {
+        real_t inv = 1.0f / scalar;
+        X *= inv; Y *= inv; Z *= inv;
+        return *this;
+    }
+
+    NYX_FORCEINLINE bool operator==(const Vec3& other) const {
+        return X == other.X && Y == other.Y && Z == other.Z;
+    }
+
+    NYX_FORCEINLINE bool operator!=(const Vec3& other) const {
+        return !(*this == other);
+    }
+
+    NYX_FORCEINLINE Vec3 operator-() const {
+        return Vec3{-X, -Y, -Z};
+    }
+
+    NYX_FORCEINLINE real_t lengthSquared() const {
+        return X * X + Y * Y + Z * Z;
+    }
+
+    NYX_FORCEINLINE real_t length() const {
+        return std::sqrt(lengthSquared());
+    }
+
+    NYX_FORCEINLINE Vec3 normalized() const {
+        real_t len = length();
+        if (len > 0) {
+            real_t inv = 1.0f / len;
+            return Vec3{X * inv, Y * inv, Z * inv};
+        }
+        return *this;
+    }
+
+    NYX_FORCEINLINE void normalize() {
+        real_t len = length();
+        if (len > 0) {
+            real_t inv = 1.0f / len;
+            X *= inv; Y *= inv; Z *= inv;
+        }
+    }
 };
 
-inline auto operator*(const Vec3 &v, real_t scalar) -> Vec3 {
-  return Vec3(v.X * scalar, v.Y * scalar, v.Z * scalar);
+NYX_FORCEINLINE Vec3 operator*(real_t scalar, const Vec3& v) {
+    return v * scalar;
 }
 
-inline auto dot(const Vec3 &a, const Vec3 &b) -> real_t {
-  return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+NYX_FORCEINLINE Vec3 operator/(real_t scalar, const Vec3& v) {
+    return Vec3{scalar / v.X, scalar / v.Y, scalar / v.Z};
 }
 
-inline auto cross(const Vec3 &a, const Vec3 &b) -> Vec3 {
-  return Vec3{a.Y * b.Z - a.Z * b.Y, a.Z * b.X - a.X * b.Z,
-              a.X * b.Y - a.Y * b.X};
+NYX_FORCEINLINE real_t dot(const Vec3& a, const Vec3& b) {
+    return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
 }
 
-} /* namespace nyx */
+NYX_FORCEINLINE Vec3 cross(const Vec3& a, const Vec3& b) {
+    return Vec3{
+        a.Y * b.Z - a.Z * b.Y,
+        a.Z * b.X - a.X * b.Z,
+        a.X * b.Y - a.Y * b.X
+    };
+}
+
+} // namespace nyx

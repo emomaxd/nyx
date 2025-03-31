@@ -2,7 +2,7 @@
 
 #include <cmath>
 
-#include "math/base.h"
+#include "core/base.h"
 
 
 namespace nyx {
