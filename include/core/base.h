@@ -12,8 +12,7 @@ using real_t = float;
 constexpr size_t alignmentMultiplier = 4;
 #endif
 
-// Cache hizalaması için macro
-constexpr size_t kCacheLineSize = 64; // Çoğu modern CPU için standart
+constexpr size_t kCacheLineSize = 64;
 #define NYX_ALIGNAS_CACHE alignas(nyx::kCacheLineSize)
 
 // Force inline macro

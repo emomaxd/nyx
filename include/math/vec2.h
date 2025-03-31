@@ -29,11 +29,11 @@ public:
   }
 };
 
-inline auto operator*(const Vec2 &v, real_t scalar) -> Vec2 {
+inline Vec2 operator*(const Vec2 &v, real_t scalar)  {
   return Vec2{v.X * scalar, v.Y * scalar};
 }
 
-inline auto dot(const Vec2 &a, const Vec2 &b) -> Vec2 {
+inline real_t dot(const Vec2 &a, const Vec2 &b)  {
   return a.X * b.X + a.Y * b.Y;
 }
 
