@@ -1,3 +1,5 @@
+#pragma once
+
 #ifdef NYX_USE_SSE4
 #include "vec3_sse4.h"
 #else
