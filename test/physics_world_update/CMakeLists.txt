@@ -5,6 +5,8 @@ set(INC
 )
 
 set(LIB
+  math
+  physics
 )
 
 set(SRC
