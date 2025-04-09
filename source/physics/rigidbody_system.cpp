@@ -15,14 +15,15 @@ RigidbodySystem::RigidbodySystem() = default;
 
 size_t RigidbodySystem::addRigidbody(const Vec3& pos, const Vec3& vel, real_t mass) {
     size_t id = Data.Positions.size();
-    Data.Positions.push_back(pos);
-    Data.Velocities.push_back(vel);
-    Data.Forces.push_back(Vec3{0, 0, 0});
-    Data.Masses.push_back(mass);
-    Data.InvMasses.push_back(mass > 0 ? 1.0f / mass : 0.0f);
-    Data.Active.push_back(1);
+    Data.Positions.emplace_back(pos);
+    Data.Velocities.emplace_back(vel);
+    Data.Forces.emplace_back(Vec3{0, 0, 0});
+    Data.Masses.emplace_back(mass);
+    Data.InvMasses.emplace_back(mass > 0 ? 1.0f / mass : 0.0f);
+    Data.Active.emplace_back(1);
     return id;
 }
+
 
 void RigidbodySystem::update(real_t dt) {
     updateRigidbodies(dt);
