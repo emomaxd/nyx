@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cmath>
 #include <cstddef> // size_t
 
 #include "core/base.h" // NYX_ALIGNAS_CACHE, NYX_FORCEINLINE, real_t
+#include "math/math.h"
 
 namespace nyx {
 
@@ -72,12 +72,9 @@ public:
         return Vec2{-X, -Y};
     }
 
-    NYX_FORCEINLINE real_t lengthSquared() const {
-        return X * X + Y * Y;
-    }
-
     NYX_FORCEINLINE real_t length() const {
-        return std::sqrt(lengthSquared());
+        const real_t len = nyx::sqrt( X*X + Y*Y);
+        return nyx::sqrt(len);
     }
 
     NYX_FORCEINLINE Vec2 normalized() const {

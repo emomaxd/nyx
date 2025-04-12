@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <cstdint>
 
 #include "core/base.h"
@@ -7,6 +8,12 @@
 namespace nyx {
     NYX_FORCEINLINE real_t sqrt(real_t x)
     {
+        #ifndef USE_CUSTOM_SQRT
+        /* STL sqrt */
+            return std::sqrt(x);
+        #else
+        /* Custom fast sqrt approximation */
+
         /* Edge case for both data types */
         if (x <= (real_t)0.0) return (real_t)0.0;
 
@@ -36,6 +43,7 @@ namespace nyx {
         */
         sqrtX = sqrtX - ((sqrtX * sqrtX - x) / (2.0f * sqrtX));
 
-        return sqrtX;        
+        return sqrtX;
+        #endif
     }
 } // namespace nyx

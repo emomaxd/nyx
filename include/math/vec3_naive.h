@@ -5,6 +5,7 @@
 #include <cstddef> // size_t
 
 #include "core/base.h" // NYX_ALIGNAS_CACHE, NYX_FORCEINLINE, real_t
+#include "math/math.h"
 
 namespace nyx {
 
@@ -75,10 +76,7 @@ public:
     }
 
     NYX_FORCEINLINE real_t length() const {
-        /* TODO: Use custom sqrt approximation if defined USE_CUSTOM_SQRT, 
-        * !Benchmark agaisnt std::sqrt to make sure it is faster.
-        */
-        const real_t len = std::sqrt(X*X + Y*Y + Z*Z); 
+        const real_t len = nyx::sqrt(X*X + Y*Y + Z*Z); 
         return len;
     }
 
