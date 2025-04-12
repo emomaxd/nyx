@@ -74,29 +74,25 @@ public:
         return Vec3{-X, -Y, -Z};
     }
 
-    NYX_FORCEINLINE real_t lengthSquared() const {
-        return X * X + Y * Y + Z * Z;
-    }
-
     NYX_FORCEINLINE real_t length() const {
-        return std::sqrt(lengthSquared());
+        /* TODO: Use custom sqrt approximation if defined USE_CUSTOM_SQRT, 
+        * !Benchmark agaisnt std::sqrt to make sure it is faster.
+        */
+        const real_t len = std::sqrt(X*X + Y*Y + Z*Z); 
+        return len;
     }
 
-    NYX_FORCEINLINE Vec3 normalized() const {
+    NYX_FORCEINLINE Vec3 normalize() {
         real_t len = length();
-        if (len > 0) {
-            real_t inv = 1.0f / len;
-            return Vec3{X * inv, Y * inv, Z * inv};
+        if (len <= 0) 
+        {
+            return Vec3{0};
         }
-        return *this;
-    }
-
-    NYX_FORCEINLINE void normalize() {
-        real_t len = length();
-        if (len > 0) {
-            real_t inv = 1.0f / len;
-            X *= inv; Y *= inv; Z *= inv;
-        }
+        
+        Vec3 result{0, 0, 0};
+        real_t inv = 1.0f / len;
+        result *= inv;
+        return result;    
     }
 };
 
