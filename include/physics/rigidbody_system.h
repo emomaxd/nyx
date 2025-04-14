@@ -13,6 +13,7 @@ struct RigidbodyData {
     ~RigidbodyData() = default;
 
     NYX_FORCEINLINE const std::vector<Vec3>& getPositions() const { return Positions; }
+    NYX_FORCEINLINE const std::vector<Vec3>& getPrevPositions() const { return PrevPositions; }
     NYX_FORCEINLINE const std::vector<Vec3>& getVelocities() const { return Velocities; }
     NYX_FORCEINLINE const std::vector<Vec3>& getForces() const { return Forces; }
     NYX_FORCEINLINE const std::vector<real_t>& getMasses() const { return Masses; }
@@ -20,6 +21,7 @@ struct RigidbodyData {
     NYX_FORCEINLINE const std::vector<uint32_t>& getActiveFlags() const { return Active; }
 
     NYX_FORCEINLINE std::vector<Vec3>& accessPositions() { return Positions; }
+    NYX_FORCEINLINE std::vector<Vec3>& accessPrevPositions() { return PrevPositions; }
     NYX_FORCEINLINE std::vector<Vec3>& accessVelocities() { return Velocities; }
     NYX_FORCEINLINE std::vector<Vec3>& accessForces() { return Forces; }
 
@@ -27,6 +29,7 @@ private:
     static constexpr size_t kInitialEntityCount = 10'000;
 
     NYX_ALIGNAS_CACHE std::vector<Vec3> Positions;
+    NYX_ALIGNAS_CACHE std::vector<Vec3> PrevPositions;
     NYX_ALIGNAS_CACHE std::vector<Vec3> Velocities;
     NYX_ALIGNAS_CACHE std::vector<Vec3> Forces;
     NYX_ALIGNAS_CACHE std::vector<real_t> Masses;
