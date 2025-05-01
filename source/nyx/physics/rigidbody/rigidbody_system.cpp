@@ -1,72 +1,80 @@
 #include "nyx/physics/rigidbody/rigidbody_system.h"
+#include "nyx/math/vec3_naive.h"
+#include <algorithm>
+#include <cassert>
 
 namespace nyx {
 
 RigidbodyData::RigidbodyData() {
     Positions.reserve(kInitialEntityCount);
     Velocities.reserve(kInitialEntityCount);
-    Forces.reserve(kInitialEntityCount);
+    AngularVelocities.reserve(kInitialEntityCount);
+    Orientations.reserve(kInitialEntityCount);
     Masses.reserve(kInitialEntityCount);
     InvMasses.reserve(kInitialEntityCount);
+    Inertias.reserve(kInitialEntityCount);
+    InvInertias.reserve(kInitialEntityCount);
     Active.reserve(kInitialEntityCount);
-    // Add storage for previous positions (needed for Verlet)
-    PrevPositions.reserve(kInitialEntityCount);
 }
 
-RigidbodySystem::RigidbodySystem() = default;
+RigidbodySystem::RigidbodySystem() {
+    // No additional initialization needed; RigidbodyData constructor handles it
+}
 
-size_t RigidbodySystem::addRigidbody(const Vec3& pos, const Vec3& vel, real_t mass) {
-    size_t id = Data.Positions.size();
-    Data.Positions.emplace_back(pos);
-    Data.Velocities.emplace_back(vel);
-    Data.Forces.emplace_back(Vec3{0, 0, 0});
-    Data.Masses.emplace_back(mass);
-    Data.InvMasses.emplace_back(mass > 0 ? 1.0f / mass : 0.0f);
-    Data.Active.emplace_back(1);
-    // Initialize previous position (assume at t=0, prev = current - vel * dt)
-    Data.PrevPositions.emplace_back(pos - vel * 0.0f); // dt=0 for initial setup
-    return id;
+size_t RigidbodySystem::addRigidbody(const Vec3& pos, const Vec3& vel, real_t mass, const Mat3& inertia) {
+    assert(mass > 0.0f && "Mass must be positive");
+    assert(inertia.isValid() && "Inertia tensor must be valid");
+
+    size_t index = Data.Positions.size();
+    Data.Positions.push_back(pos);
+    Data.Velocities.push_back(vel);
+    Data.AngularVelocities.push_back(Vec3(0.0f, 0.0f, 0.0f));
+    Data.Orientations.push_back(Quaternion::identity());
+    Data.Masses.push_back(mass);
+    Data.InvMasses.push_back(1.0f / mass);
+    Data.Inertias.push_back(inertia);
+    Data.InvInertias.push_back(inertia.inverse());
+    Data.Active.push_back(1); // Active by default
+
+    return index;
 }
 
 void RigidbodySystem::update(real_t dt) {
-    updateRigidbodies(dt);
-    clearForces();
+    integrate(dt);
+    clearForces(); // Forces are typically cleared after integration
 }
 
-void RigidbodySystem::updateRigidbodies(real_t dt) {
-    size_t count = Data.Positions.size();
-    for (size_t i = 0; i < count; ++i) {
-        if (!Data.Active[i]) {
-            continue;
-        }
+void RigidbodySystem::applyImpulse(size_t index, const Vec3& impulse, const Vec3& contactVector) {
+    assert(index < Data.Positions.size() && "Invalid rigidbody index");
+    if (!Data.Active[index]) return;
 
-        // Velocity Verlet integration
-        // Step 1: Compute current acceleration
-        Vec3 accel = Data.Forces[i] * Data.InvMasses[i];
+    // Linear velocity change: v += impulse / mass
+    Data.Velocities[index] += impulse * Data.InvMasses[index];
 
-        // Step 2: Store current position for velocity update
-        Vec3 currPos = Data.Positions[i];
+    // Angular velocity change: ω += I⁻¹ * (r × impulse)
+    Vec3 torque = cross(contactVector,  impulse);
+    Data.AngularVelocities[index] += Data.InvInertias[index] * torque;
+}
 
-        // Step 3: Update position using Verlet formula
-        // pos(t + dt) = 2 * pos(t) - pos(t - dt) + accel * dt^2
-        Data.Positions[i] = 2.0f * Data.Positions[i] - Data.PrevPositions[i] + accel * dt * dt;
+void RigidbodySystem::integrate(real_t dt) {
+    for (size_t i = 0; i < Data.Positions.size(); ++i) {
+        if (!Data.Active[i]) continue;
 
-        // Step 4: Update previous position
-        Data.PrevPositions[i] = currPos;
+        // Update position: p += v * dt
+        Data.Positions[i] += Data.Velocities[i] * dt;
 
-        // Step 5: Update velocity using average acceleration
-        // For velocity, we use: vel(t + dt) = (pos(t + dt) - pos(t - dt)) / (2 * dt)
-        Data.Velocities[i] = (Data.Positions[i] - Data.PrevPositions[i]) / (2.0f * dt);
+        // Update orientation: q += 0.5 * ω * q * dt
+        Quaternion omega(0.0f, Data.AngularVelocities[i].X, Data.AngularVelocities[i].Y, Data.AngularVelocities[i].Z);
+        Data.Orientations[i] += 0.5f * omega * Data.Orientations[i] * dt;
+        Data.Orientations[i].normalize();
+
+        // Note: Velocities and angular velocities are not updated here (assume forces/impulses handle it)
     }
 }
 
 void RigidbodySystem::clearForces() {
-    size_t count = Data.Forces.size();
-    for (size_t i = 0; i < count; ++i) {
-        if (Data.Active[i]) {
-            Data.Forces[i] = Vec3{0, 0, 0};
-        }
-    }
+    // Currently, no accumulated forces are stored, so this is a no-op
+    // If forces are added later, reset them here
 }
 
-}  // namespace nyx
+} // namespace nyx
