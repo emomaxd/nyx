@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <vector>
 
-#include "core/base.h"
-#include "math/vec3.h"
+#include "nyx/core/base.h"
+#include "nyx/math/vec3.h"
 
 namespace nyx {
 

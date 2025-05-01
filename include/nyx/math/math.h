@@ -3,7 +3,7 @@
 #include <cmath>
 #include <cstdint>
 
-#include "core/base.h"
+#include "nyx/core/base.h"
 
 namespace nyx {
     NYX_FORCEINLINE real_t sqrt(real_t x)

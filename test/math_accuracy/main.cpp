@@ -7,7 +7,7 @@
 
 #define USE_CUSTOM_SQRT
 
-#include "math/math.h"
+#include "nyx/math/math.h"
 
 // Cycle counter (platform-specific, fallback to chrono if unavailable)
 #if defined(__x86_64__) && defined(__GNUC__)

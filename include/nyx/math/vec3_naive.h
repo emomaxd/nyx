@@ -4,8 +4,8 @@
 #include <cmath>
 #include <cstddef> // size_t
 
-#include "core/base.h" // NYX_ALIGNAS_CACHE, NYX_FORCEINLINE, real_t
-#include "math/math.h"
+#include "nyx/core/base.h" // NYX_ALIGNAS_CACHE, NYX_FORCEINLINE, real_t
+#include "nyx/math/math.h"
 
 namespace nyx {
 

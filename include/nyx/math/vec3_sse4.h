@@ -3,7 +3,7 @@
 #include <bit> // std::bit_ceil
 #include <smmintrin.h>
 
-#include "core/base.h"
+#include "nyx/core/base.h"
 
 namespace nyx {
 

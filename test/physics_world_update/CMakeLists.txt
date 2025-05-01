@@ -6,7 +6,8 @@ set(INC
 
 set(LIB
   math
-  physics
+  scene
+  rigidbody
 )
 
 set(SRC

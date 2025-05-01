@@ -1,7 +1,7 @@
 #ifndef QUATERNION_H
 #define QUATERNION_H
 
-#include "math/vec3.h"
+#include "nyx/math/vec3.h"
 
 namespace nyx {
 

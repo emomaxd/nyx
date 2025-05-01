@@ -1,4 +1,4 @@
-#include "physics/rigidbody_system.h"
+#include "nyx/physics/rigidbody/rigidbody_system.h"
 
 namespace nyx {
 

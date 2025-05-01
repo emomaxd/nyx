@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "core/base.h"
-#include "physics/physics_world.h"
+#include "nyx/core/base.h"
+#include "nyx/physics/scene/physics_world.h"
 
 using namespace nyx;
 
