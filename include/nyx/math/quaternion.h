@@ -1,53 +1,59 @@
-#ifndef QUATERNION_H
-#define QUATERNION_H
+#pragma once
 
+#include "nyx/core/base.h"
 #include "nyx/math/vec3.h"
 
 namespace nyx {
 
-constexpr size_t quaternionElementCount = 4;
-constexpr size_t quaternionAlignment = quaternionElementCount * alignmentMultiplier;
+class Quaternion {
+public:
+    real_t w, x, y, z;
 
-struct alignas(quaternionAlignment) Quaternion {
-  real_t X, Y, Z, W;
+    Quaternion() : w(1.0f), x(0.0f), y(0.0f), z(0.0f) {}
+    Quaternion(real_t w, real_t x, real_t y, real_t z) : w(w), x(x), y(y), z(z) {}
+    Quaternion(real_t w, const Vec3& v) : w(w), x(v.X), y(v.Y), z(v.Z) {}
 
-  Quaternion() : X(0.0f), Y(0.0f), Z(0.0f), W(1.0f) {}
+    static Quaternion identity() { return Quaternion(1.0f, 0.0f, 0.0f, 0.0f); }
 
-  Quaternion(float x, float y, float z, float w) : X(x), Y(y), Z(z), W(w) {}
-
-  void normalize() {
-    float len = X * X + Y * Y + Z * Z + W * W;
-    if (len > 0.0f) {
-      float invLen = 1.0f / sqrt(len);
-      X *= invLen;
-      Y *= invLen;
-      Z *= invLen;
-      W *= invLen;
+    Quaternion operator*(const Quaternion& other) const {
+        return Quaternion(
+            w * other.w - x * other.x - y * other.y - z * other.z,
+            w * other.x + x * other.w + y * other.z - z * other.y,
+            w * other.y - x * other.z + y * other.w + z * other.x,
+            w * other.z + x * other.y - y * other.x + z * other.w
+        );
     }
-  }
 
-  Quaternion operator*(const Quaternion &q) const {
-    return Quaternion(W * q.X + X * q.W + Y * q.Z - Z * q.Y,
-                      W * q.Y - X * q.Z + Y * q.W + Z * q.X,
-                      W * q.Z + X * q.Y - Y * q.X + Z * q.W,
-                      W * q.W - X * q.X - Y * q.Y - Z * q.Z);
-  }
+    Quaternion operator*(real_t scalar) const {
+        return Quaternion(w * scalar, x * scalar, y * scalar, z * scalar);
+    }
 
-  Vec3 rotate(const Vec3 &v) const {
-    Quaternion qv(0.0f, v.X, v.Y, v.Z);
-    Quaternion qConjugate = conjugate();
-    Quaternion qResult = *this * qv * qConjugate;
-    return Vec3(qResult.X, qResult.Y, qResult.Z);
-  }
+    Quaternion operator+(const Quaternion& other) const {
+      return Quaternion(w + other.w, x + other.x, y + other.y, z + other.z);
+    }
 
-  Quaternion conjugate() const { return Quaternion(-X, -Y, -Z, W); }
-
-  static Quaternion fromAxisAngle(const Vec3 &axis, float angle) {
-    float halfAngle = angle * 0.5f;
-    float s = sin(halfAngle);
-    return Quaternion(axis.X * s, axis.Y * s, axis.Z * s, cos(halfAngle));
-  }
+    Quaternion& operator+=(const Quaternion& other) {
+        w += other.w;
+        x += other.x;
+        y += other.y;
+        z += other.z;
+        return *this;
+    }
+    void normalize() {
+        real_t mag = std::sqrt(w * w + x * x + y * y + z * z);
+        if (mag > 0.0f) {
+            real_t invMag = 1.0f / mag;
+            w *= invMag;
+            x *= invMag;
+            y *= invMag;
+            z *= invMag;
+        }
+    }
 };
 
-} /* namespace nyx */
-#endif
+// Non-member operator for float * Quaternion
+inline Quaternion operator*(real_t scalar, const Quaternion& q) {
+    return q * scalar; // Reuse the member operator
+}
+
+} // namespace nyx
