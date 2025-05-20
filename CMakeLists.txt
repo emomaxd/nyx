@@ -88,6 +88,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)  # Static libraries
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)  # Shared libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)  # Executables
 
+option(BUILD_EXAMPLE "Enable building examples" OFF)
 option(BUILD_TEST "Enable building the test suite" OFF)
 option(NYX_DEPLOY "Enable native flags" OFF)
 
@@ -97,8 +98,12 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(source)
 
+if (BUILD_EXAMPLE)
+    add_subdirectory(example)
+endif ()
+
 if (BUILD_TEST)
-add_subdirectory(test)
+    add_subdirectory(test)
 endif ()
 
 if (NOT NYX_DEPLOY)
