@@ -96,12 +96,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(source)
+
+if (BUILD_TEST)
 add_subdirectory(test)
+endif ()
 
-
-if(NOT NYX_DEPLOY)
+if (NOT NYX_DEPLOY)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-endif()
+endif ()
 
 # Install executable
 install(TARGETS math
