@@ -44,7 +44,6 @@ else()
 endif()
 
 # Debug Mode (For Clang/GCC and MSVC)
-set(CMAKE_BUILD_TYPE Debug)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     message(STATUS "Configuring for Debug")
     
@@ -62,7 +61,6 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif()
 
 # Release Mode (For Clang/GCC and MSVC)
-set(CMAKE_BUILD_TYPE Release)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     message(STATUS "Configuring for Release")
     
