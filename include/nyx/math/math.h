@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cmath>
-#include <cstdint>
+
+#ifdef USE_CUSTOM_SQRT
+    #include <cstdint>
+#endif
 
 #include "nyx/core/base.h"
 
