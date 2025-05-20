@@ -89,7 +89,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)  # Shared libraries
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)  # Executables
 
 option(BUILD_TEST "Enable building the test suite" OFF)
-option(NYX_LOCAL_BUILD "Enable native flags" OFF)
+option(NYX_DEPLOY "Enable native flags" OFF)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
